@@ -12,6 +12,6 @@ path = [cwd + '/jerryscript/jerry-core/include',
 LIBPATH = [cwd]
 LIBS    = ['libengine']
 
-group = DefineGroup('JerryScript', src, depend = [''], CPPPATH = path, LIBS=LIBS, LIBPATH=LIBPATH)
+group = DefineGroup('JerryScript', src, depend = ['PKG_USING_JERRYSCRIPT_WIN32'], CPPPATH = path, LIBS=LIBS, LIBPATH=LIBPATH)
 
 Return('group')
