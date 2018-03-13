@@ -4,10 +4,14 @@ from building import *
 cwd  = GetCurrentDir()
 src  = Glob('utils/*.c')
 path = [cwd + '/jerryscript/jerry-core/include', 
-	cwd + '/jerryscript/jerry-ext/include',
-	cwd + '/jerryscript/jerry-port/include'
+    cwd + '/jerryscript/jerry-ext/include',
+    cwd + '/jerryscript/jerry-port/include',
+    cwd + '/port',
+    cwd + '/utils',
 ]
+LIBPATH = [cwd]
+LIBS    = ['libengine']
 
-group = DefineGroup('JerryScript', src, depend = ['PKG_USING_JERRYSCRIPT_WIN32'], CPPPATH = path)
+group = DefineGroup('JerryScript', src, depend = [''], CPPPATH = path, LIBS=LIBS, LIBPATH=LIBPATH)
 
 Return('group')

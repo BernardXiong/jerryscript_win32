@@ -4,6 +4,8 @@
 #include <assert.h>
 
 #include "jerry_util.h"
+#include <rtthread.h>
+#include <dfs_posix.h>
 
 void js_set_property(const jerry_value_t obj, const char *name,
     const jerry_value_t prop)
@@ -113,7 +115,7 @@ bool object_dump_foreach(const jerry_value_t property_name,
     return true;
 }
 
-void js_value_dump(jerry_value_t value)
+void js_value_dump(const jerry_value_t value)
 {
     if (jerry_value_is_undefined(value))
     {
@@ -159,7 +161,7 @@ void js_value_dump(jerry_value_t value)
     }
     else if (jerry_value_is_array(value))
     {
-        int index;
+        uint32_t index;
         printf("[");
         for (index = 0; index < jerry_get_array_length(value); index ++)
         {
@@ -184,6 +186,43 @@ void js_value_dump(jerry_value_t value)
 
 int js_read_file(const char* filename, char **script)
 {
+#ifdef _WIN32
+    int fd;
+    int length = 0;
+
+    if (!filename || !script) return 0;
+
+    fd = open(filename, O_RDONLY);
+    if (fd >= 0)
+    {
+        length = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+
+        if (length)
+        {
+            char *script_str = (char*)malloc(length + 1);
+            if (script_str)
+            {
+                script_str[length] = '\0';
+                int len = read(fd, script_str, length);
+                if (len != length)
+                {
+                    free(script_str);
+                    printf("read failed!\n");
+                    length = 0;
+                }
+                else
+                {
+                    *script = script_str;
+                }
+            }
+        }
+
+        close(fd);
+    }
+
+    return length;
+#else
     FILE *fp;
     int length = 0;
 
@@ -208,6 +247,7 @@ int js_read_file(const char* filename, char **script)
                 }
                 else
                 {
+                    free(script_str);
                     printf("read failed!\n");
                 }
             }
@@ -215,15 +255,21 @@ int js_read_file(const char* filename, char **script)
         }
         fclose(fp);
     }
+#endif
 
     return length;
 }
 
 extern int js_console_init();
 extern int js_module_init();
+extern int win32_port_init();
 
 int js_util_init(void)
 {
+#ifdef _WIN32
+    win32_port_init();
+#endif
+
     js_console_init();
     js_module_init();
 
